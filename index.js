@@ -2,9 +2,9 @@ import { Header, Nav, Main, Footer } from "./components";
 import * as store from "./store";
 import Navigo from "navigo";
 import { capitalize } from "lodash";
-import axios from "axios";
 
 const router = new Navigo("/");
+
 
 function render(state = store.Home) {
   document.querySelector("#root").innerHTML = `
@@ -13,39 +13,13 @@ function render(state = store.Home) {
   ${Main(state)}
   ${Footer()}
   `;
-
   router.updatePageLinks();
-
-  afterRender(state);
 }
-
-function afterRender(state) {
-  if (state.view === "Home") {
-    document.querySelector("form").addEventListener("submit", event => {
-      event.preventDefault();
-
-      const inputList = event.target.elements;
-
-      console.log(inputList.start.value);
-      const [year, month, day] = inputList.start.value.split("-");
-      axios
-        .get(
-          `https://calendarific.com/api/v2/holidays?api_key=${process.env.CALENDARIFIC_API_KEY}&country=${inputList.Countries.value}&year=${year}&month=${month}&day=${day}`
-        )
-        .then(response => {
-          console.log("response", response.data);
-          store.Home.holidays = response.data.response.holidays;
-          store.History.holidays = response.data.response.holidays;
-          store.Music.holidays = response.data.response.holidays;
-          router.navigate("/Home");
-        })
-        .catch(err => console.log(err));
-    });
-  }
-  if (state.view === "History") {
-    let holidayWiki = store.Home.holidays;
-    return console.log("This is History" + holidayWiki);
-  }
+function afterRender() {
+  // add menu toggle to bars icon in nav bar
+  document.querySelector(".fa-bars").addEventListener("click", () => {
+    document.querySelector("nav > ul").classList.toggle("hidden--mobile");
+  });
 }
 
 router.hooks({
@@ -53,27 +27,49 @@ router.hooks({
     const view =
       params && params.data && params.data.view
         ? capitalize(params.data.view)
-        : "Home";
+        : "Home"; // Add a switch case statement to handle multiple routes
     switch (view) {
       case "Home":
-        console.log(store.Home.holidays);
-        done();
+        axios
+          .get(
+            `https://api.openweathermap.org/data/2.5/weather?q=st%20louis&appid=${process.env.HOLIDAYS_API=4038832f283143ebb69fc81911aaea82
+          }`
+          )
+          .then(response => {
+            const kelvinToFahrenheit = kelvinTemp =>
+              Math.round((kelvinTemp - 273.15) * (9 / 5) + 32);
+
+            store.Home.weather = {};
+            store.Home.weather.city = response.data.name;
+            store.Home.weather.temp = kelvinToFahrenheit(
+              response.data.main.temp
+            );
+            store.Home.weather.feelsLike = kelvinToFahrenheit(
+              response.data.main.feels_like
+            );
+            store.Home.weather.description = response.data.weather[0].main;
+            done();
+          })
+          .catch(err => console.log(err));
         break;
-      case "History":
-        console.log(store.Home.holidays.name);
-        done();
+      // New Case for Pizza View
+      case "Pizza":
+        // New Axios get request utilizing already made environment variable
+        axios
+          .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
+          .then(response => {
+            // Storing retrieved data in state
+            store.Pizza.pizzas = response.data;
+            done();
+          })
+          .catch(error => {
+            console.log("It puked", error);
+            done();
+          });
         break;
       default:
         done();
     }
-  },
-  already: params => {
-    const view =
-      params && params.data && params.data.view
-        ? capitalize(params.data.view)
-        : "Home";
-
-    render(store[view]);
   }
 });
 
