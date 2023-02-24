@@ -1,5 +1,5 @@
 export default [
-  { title: "Home", text: "Holidays" },
-  { title: "History", text: "History" },
-  { title: "Music", text: "Music" }
+  { title: "FastMuscleBuilding", text: "Fast Muscle Building" },
+  { title: "FatLossNow", text: "Fat Loss NOW" },
+  { title: "Home", text: "Home" }
 ];
