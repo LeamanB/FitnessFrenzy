@@ -18,10 +18,8 @@ function render(state = store.Home) {
   afterRender(state);
 }
 
-
-
 function afterRender(state) {
-  if (state.view === "FastMuscle Building") {
+  if (state.view === "FastMuscleBuilding") {
     document.querySelector("form").addEventListener("submit", event => {
       event.preventDefault();
 
@@ -31,39 +29,37 @@ function afterRender(state) {
       const [year, month, day] = inputList.start.value.split("-");
       axios
         .get(
-          `https://gnews.io/api/v4/search?q=example&apikey=${process.env.GNEWS_API_KEY}`
+          `https://gnews.io/api/v4/search?q=example&lang=en&country=us&max=10&apikey=${GNEWS_API_KEY}`
         )
         .then(response => {
           console.log("response", response.data);
-          store.Home.holidays = response.data.response.holidays;
-          store.History.holidays = response.data.response.holidays;
-          store.Music.holidays = response.data.response.holidays;
+          store.FastMuscleBuilding.holidays = response.data.response.holidays;
+          store.FatLossNow.holidays = response.data.response.holidays;
           router.navigate("/Home");
         })
         .catch(err => console.log(err));
     });
-  }
-  else if (state.view === "FatLossNow") {
+  } else if (state.view === "FatLossNow") {
     let holidayWiki = store.Home.holidays;
     return console.log("This is History" + holidayWiki);
   }
 }
 
-apikey = 'API_KEY';
+`https://gnews.io/api/v4/search?q=example&lang=en&country=us&max=10&apikey=${GNEWS_API_KEY}`
 url = 'https://gnews.io/api/v4/search?q=example&lang=en&country=us&max=10&apikey=' + apikey;
 
 fetch(url)
-  .then(function (response) {
+  .then(function(response) {
     return response.json();
   })
-  .then(function (data) {
+  .then(function(data) {
     articles = data.articles;
 
     for (i = 0; i < articles.length; i++) {
       // articles[i].title
-      console.log("Title: " + articles[i]['title']);
+      console.log("Title: " + articles[i]["title"]);
       // articles[i].description
-      console.log("Description: " + articles[i]['description']);
+      console.log("Description: " + articles[i]["description"]);
       // You can replace {property} below with any of the article properties returned by the API.
       // articles[i].{property}
       // console.log(articles[i]['{property}']);
@@ -73,21 +69,19 @@ fetch(url)
     }
   });
 
-
-
 router.hooks({
   before: (done, params) => {
     const view =
       params && params.data && params.data.view
         ? capitalize(params.data.view)
-        : "Home";
+        : "FastMuscleBuilding";
     switch (view) {
-      case "Home":
-        console.log(store.Home.holidays);
+      case "FastMuscleBuilding":
+        console.log(store.FastMuscleBuilding.holidays);
         done();
         break;
-      case "History":
-        console.log(store.Home.holidays.name);
+      case "FatLossNow":
+        console.log(store.FatLossNow.holidays.name);
         done();
         break;
       default:
