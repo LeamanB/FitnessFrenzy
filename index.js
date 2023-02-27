@@ -5,7 +5,6 @@ import { capitalize } from "lodash";
 
 const router = new Navigo("/");
 
-
 function render(state = store.Home) {
   document.querySelector("#root").innerHTML = `
   ${Header(state)}
@@ -13,63 +12,95 @@ function render(state = store.Home) {
   ${Main(state)}
   ${Footer()}
   `;
+
   router.updatePageLinks();
+
+  afterRender(state);
 }
-function afterRender() {
-  // add menu toggle to bars icon in nav bar
-  document.querySelector(".fa-bars").addEventListener("click", () => {
-    document.querySelector("nav > ul").classList.toggle("hidden--mobile");
+
+
+
+function afterRender(state) {
+  if (state.view === "FastMuscle Building") {
+    document.querySelector("form").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const inputList = event.target.elements;
+
+      console.log(inputList.start.value);
+      const [year, month, day] = inputList.start.value.split("-");
+      axios
+        .get(
+          `https://gnews.io/api/v4/search?q=example&apikey=${process.env.GNEWS_API_KEY}`
+        )
+        .then(response => {
+          console.log("response", response.data);
+          store.Home.holidays = response.data.response.holidays;
+          store.History.holidays = response.data.response.holidays;
+          store.Music.holidays = response.data.response.holidays;
+          router.navigate("/Home");
+        })
+        .catch(err => console.log(err));
+    });
+  }
+  else if (state.view === "FatLossNow") {
+    let holidayWiki = store.Home.holidays;
+    return console.log("This is History" + holidayWiki);
+  }
+}
+
+apikey = 'API_KEY';
+url = 'https://gnews.io/api/v4/search?q=example&lang=en&country=us&max=10&apikey=' + apikey;
+
+fetch(url)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    articles = data.articles;
+
+    for (i = 0; i < articles.length; i++) {
+      // articles[i].title
+      console.log("Title: " + articles[i]['title']);
+      // articles[i].description
+      console.log("Description: " + articles[i]['description']);
+      // You can replace {property} below with any of the article properties returned by the API.
+      // articles[i].{property}
+      // console.log(articles[i]['{property}']);
+
+      // Delete this line to display all the articles returned by the request. Currently only the first article is displayed.
+      break;
+    }
   });
-}
+
+
 
 router.hooks({
   before: (done, params) => {
     const view =
       params && params.data && params.data.view
         ? capitalize(params.data.view)
-        : "Home"; // Add a switch case statement to handle multiple routes
+        : "Home";
     switch (view) {
       case "Home":
-        axios
-          .get(
-            `https://api.openweathermap.org/data/2.5/weather?q=st%20louis&appid=${process.env.HOLIDAYS_API=4038832f283143ebb69fc81911aaea82
-          }`
-          )
-          .then(response => {
-            const kelvinToFahrenheit = kelvinTemp =>
-              Math.round((kelvinTemp - 273.15) * (9 / 5) + 32);
-
-            store.Home.weather = {};
-            store.Home.weather.city = response.data.name;
-            store.Home.weather.temp = kelvinToFahrenheit(
-              response.data.main.temp
-            );
-            store.Home.weather.feelsLike = kelvinToFahrenheit(
-              response.data.main.feels_like
-            );
-            store.Home.weather.description = response.data.weather[0].main;
-            done();
-          })
-          .catch(err => console.log(err));
+        console.log(store.Home.holidays);
+        done();
         break;
-      // New Case for Pizza View
-      case "Pizza":
-        // New Axios get request utilizing already made environment variable
-        axios
-          .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
-          .then(response => {
-            // Storing retrieved data in state
-            store.Pizza.pizzas = response.data;
-            done();
-          })
-          .catch(error => {
-            console.log("It puked", error);
-            done();
-          });
+      case "History":
+        console.log(store.Home.holidays.name);
+        done();
         break;
       default:
         done();
     }
+  },
+  already: params => {
+    const view =
+      params && params.data && params.data.view
+        ? capitalize(params.data.view)
+        : "Home";
+
+    render(store[view]);
   }
 });
 
